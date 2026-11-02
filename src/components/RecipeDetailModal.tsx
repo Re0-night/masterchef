@@ -18,7 +18,7 @@ import {
   Utensils,
 } from 'lucide-react';
 import { Recipe, RecipeStep } from '../types';
-import { getRecipeImage } from '../constants/images';
+import { getRecipeImage, handleImageFallback } from '../constants/images';
 
 interface RecipeDetailModalProps {
   recipe: Recipe | null;
@@ -230,6 +230,8 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                 src={imageUrl}
                 alt={recipe.title}
                 className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+                onError={(e) => handleImageFallback(e, 'dish')}
               />
               <div className="absolute bottom-3 left-3 right-3 bg-stone-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl text-white text-xs flex items-center justify-between">
                 <span>Khẩu phần: {recipe.servings}</span>

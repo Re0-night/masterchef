@@ -51,11 +51,20 @@ app.post('/api/identify-ingredients', async (req: Request, res: Response) => {
 
     // Process base64 or local sample image path
     let cleanBase64 = imageBase64;
-    if (typeof imageBase64 === 'string' && (imageBase64.startsWith('/src/') || imageBase64.startsWith('src/'))) {
+    if (
+      typeof imageBase64 === 'string' &&
+      (imageBase64.startsWith('/images/') ||
+        imageBase64.startsWith('images/') ||
+        imageBase64.startsWith('/src/') ||
+        imageBase64.startsWith('src/'))
+    ) {
       try {
-        const localPath = path.resolve(__dirname, imageBase64.replace(/^\//, ''));
-        if (fs.existsSync(localPath)) {
-          cleanBase64 = fs.readFileSync(localPath).toString('base64');
+        let candidatePath = path.resolve(__dirname, 'public', imageBase64.replace(/^\//, ''));
+        if (!fs.existsSync(candidatePath)) {
+          candidatePath = path.resolve(__dirname, imageBase64.replace(/^\//, ''));
+        }
+        if (fs.existsSync(candidatePath)) {
+          cleanBase64 = fs.readFileSync(candidatePath).toString('base64');
         }
       } catch (readErr) {
         console.warn('Could not read sample file from path, proceeding with fallback:', readErr);

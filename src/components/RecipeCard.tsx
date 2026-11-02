@@ -1,7 +1,7 @@
 import React from 'react';
 import { Clock, ChefHat, Flame, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Recipe } from '../types';
-import { getRecipeImage } from '../constants/images';
+import { getRecipeImage, handleImageFallback } from '../constants/images';
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -23,11 +23,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onSelect }) => {
           alt={recipe.title}
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          onError={(e) => {
-            // Safe fallback
-            (e.target as HTMLImageElement).src =
-              'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80';
-          }}
+          onError={(e) => handleImageFallback(e, 'dish')}
         />
 
         {/* Subtle Category Marker */}

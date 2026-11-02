@@ -1,6 +1,6 @@
 import React from 'react';
 import { Camera, Sparkles, ChefHat, ArrowDown, CheckCircle2 } from 'lucide-react';
-import { ASSET_IMAGES } from '../constants/images';
+import { ASSET_IMAGES, handleImageFallback } from '../constants/images';
 
 interface HeroSectionProps {
   onStartScanning: () => void;
@@ -92,6 +92,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 src={ASSET_IMAGES.heroKitchen}
                 alt="Gian bếp Việt hiện đại với rau thơm, ớt hiểm, sả chanh và bát phở bốc khói"
                 className="w-full h-full object-cover"
+                loading="eager"
+                referrerPolicy="no-referrer"
+                onError={(e) => handleImageFallback(e, 'kitchen')}
               />
 
               {/* Contrast Scrim for overlay badge */}

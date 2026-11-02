@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Camera, Upload, RefreshCw, Sparkles, Image as ImageIcon, Video, X, Check } from 'lucide-react';
-import { ASSET_IMAGES } from '../constants/images';
+import { ASSET_IMAGES, handleImageFallback } from '../constants/images';
 
 interface ImageUploadAreaProps {
   onImageSelected: (base64: string, previewUrl: string) => void;
@@ -137,6 +137,8 @@ export const ImageUploadArea: React.FC<ImageUploadAreaProps> = ({
                   src={preview}
                   alt="Ảnh nguyên liệu đã tải lên"
                   className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => handleImageFallback(e, 'ingredients')}
                 />
 
                 {/* Scanning Laser Beam Effect when analyzing */}
@@ -278,6 +280,8 @@ export const ImageUploadArea: React.FC<ImageUploadAreaProps> = ({
                   src={ASSET_IMAGES.sampleIngredients}
                   alt="Ảnh mẫu nguyên liệu tươi"
                   className="w-14 h-14 rounded-xl object-cover shrink-0 border border-emerald-200 group-hover:scale-105 transition-transform"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => handleImageFallback(e, 'ingredients')}
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
