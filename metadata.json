@@ -1,0 +1,10 @@
+{
+  "name": "SmartChef AI - Trợ Lý Nấu Ăn Việt Thông Minh",
+  "description": "Nhận diện nguyên liệu qua ảnh chụp bằng AI và gợi ý các món ăn Việt Nam hấp dẫn, hướng dẫn nấu chi tiết chuẩn vị.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
