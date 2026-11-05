@@ -43,6 +43,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
   const [chefAnswer, setChefAnswer] = useState<string | null>(null);
   const [isAskingChef, setIsAskingChef] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isModalImageLoaded, setIsModalImageLoaded] = useState(false);
 
   // Reset when recipe changes
   useEffect(() => {
@@ -53,6 +54,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
       setTimerActive(false);
       setChefAnswer(null);
       setChefQuestion('');
+      setIsModalImageLoaded(false);
     }
   }, [recipe]);
 
@@ -225,17 +227,37 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
           
           {/* Header Split: Photo & Info */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-            <div className="md:col-span-5 relative rounded-2xl overflow-hidden shadow-md aspect-4/3 md:aspect-square bg-stone-100 border border-[#E8DFD0]">
+            <div className="md:col-span-5 relative rounded-2xl overflow-hidden shadow-lg aspect-4/3 md:aspect-square bg-[#FAF7F2] border border-[#E8DFD0]">
+              {/* Skeleton loading animation */}
+              {!isModalImageLoaded && (
+                <div className="absolute inset-0 bg-gradient-to-r from-stone-100 via-[#F5EFE6] to-stone-100 animate-pulse flex flex-col items-center justify-center text-stone-400 gap-2">
+                  <Utensils className="w-8 h-8 text-[#0C3426]/30 animate-bounce" />
+                  <span className="text-xs font-medium tracking-wider text-stone-500 uppercase">
+                    SmartChef AI
+                  </span>
+                </div>
+              )}
               <img
                 src={imageUrl}
                 alt={recipe.title}
-                className="w-full h-full object-cover"
+                loading="eager"
+                onLoad={() => setIsModalImageLoaded(true)}
+                className={`w-full h-full object-cover transition-all duration-700 ease-out ${
+                  isModalImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                }`}
                 referrerPolicy="no-referrer"
-                onError={(e) => handleImageFallback(e, 'dish')}
+                onError={(e) => {
+                  setIsModalImageLoaded(true);
+                  handleImageFallback(e, 'dish');
+                }}
               />
-              <div className="absolute bottom-3 left-3 right-3 bg-stone-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl text-white text-xs flex items-center justify-between">
-                <span>Khẩu phần: {recipe.servings}</span>
-                <span>{recipe.estimatedCalories || '~380 kcal'}</span>
+              <div className="absolute inset-x-0 bottom-0 pt-8 pb-3 px-3 bg-gradient-to-t from-stone-950/85 via-stone-900/40 to-transparent">
+                <div className="flex items-center justify-between text-white text-xs">
+                  <span className="font-medium text-emerald-300">Khẩu phần: {recipe.servings}</span>
+                  <span className="px-2 py-0.5 rounded-md bg-white/20 backdrop-blur-sm text-[11px] font-medium text-stone-200">
+                    {recipe.estimatedCalories || '~380 kcal'}
+                  </span>
+                </div>
               </div>
             </div>
 

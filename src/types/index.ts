@@ -60,3 +60,10 @@ export interface CookingPreferences {
   region: 'all' | 'north' | 'central' | 'south';
   difficulty: 'all' | 'easy' | 'medium';
 }
+
+export interface IngredientAdvisory {
+  isInsufficient: boolean;
+  message: string;
+  suggestedAdditions: string[];
+}
+

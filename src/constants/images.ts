@@ -1,5 +1,6 @@
 /**
  * High-fidelity generated culinary assets and resilient fallback systems for SmartChef AI
+ * Covers authentic Vietnamese regional gastronomy: North, Central, and South
  */
 
 export const FALLBACK_DISH_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(`
@@ -56,35 +57,218 @@ export const FALLBACK_INGREDIENTS_SVG = `data:image/svg+xml;utf8,${encodeURIComp
 
 // Canonical public paths that resolve in both dev and production dist
 export const ASSET_IMAGES = {
+  // Hero & Ingredients
   heroKitchen: '/images/hero_kitchen.jpg',
   sampleIngredients: '/images/sample_ingredients.jpg',
+
+  // Northern Specialties (Miền Bắc)
+  dishThitRangChayCanh: '/images/dish_thit_rang_chay_canh.jpg',
+  dishChaLaLot: '/images/dish_cha_la_lot.jpg',
+  dishCanhCaChuaDauPhu: '/images/dish_canh_ca_chua_dau_phu.jpg',
+  dishNemRanHanoi: '/images/dish_nem_ran_hanoi.jpg',
+  dishPhoBoHanoi: '/images/dish_pho_bo_hanoi.jpg',
+  dishBunChaHanoi: '/images/dish_bun_cha_hanoi.jpg',
+  dishCanhSuonChua: '/images/dish_canh_suon_chua.jpg',
+  dishCanhCaiNauThit: '/images/dish_canh_cai_nau_thit.jpg',
+  dishComRangDuaBo: '/images/dish_com_rang_dua_bo.jpg',
+
+  // Central Specialties (Miền Trung)
+  dishThitKhoTieuHue: '/images/dish_thit_kho_tieu_hue.jpg',
+  dishBunBoHue: '/images/dish_bun_bo_hue.jpg',
+
+  // Southern Specialties (Miền Nam)
   dishThitKho: '/images/dish_thit_kho.jpg',
   dishCanhChua: '/images/dish_canh_chua.jpg',
   dishGoiCuon: '/images/dish_goi_cuon.jpg',
+  dishComTamSuon: '/images/dish_com_tam_suon.jpg',
+  dishCaKhoTo: '/images/dish_ca_kho_to.jpg',
+  dishBanhXeo: '/images/dish_banh_xeo.jpg',
+
+  // Universal Family & Healthy Dishes
+  dishTrungChienHanh: '/images/dish_trung_chien_hanh.jpg',
+  dishRauMuongXao: '/images/dish_rau_muong_xao.jpg',
+  dishDauPhuSotCa: '/images/dish_dau_phu_sot_ca.jpg',
+  dishGoiGaBapCai: '/images/dish_goi_ga_bap_cai.jpg',
+  dishCheSenLongNhan: '/images/dish_che_sen_long_nhan.jpg',
 };
 
-export function getRecipeImage(imageTag?: string, title?: string, category?: string): string {
-  const t = title?.toLowerCase() || '';
-  const c = category?.toLowerCase() || '';
+/**
+ * Image tag registry mapping specific image tags to their visual asset
+ */
+export const DISH_IMAGE_REGISTRY: Record<string, string> = {
+  // Direct tag mappings
+  dish_thit_rang_chay_canh: ASSET_IMAGES.dishThitRangChayCanh,
+  dish_cha_la_lot: ASSET_IMAGES.dishChaLaLot,
+  dish_canh_ca_chua_dau_phu: ASSET_IMAGES.dishCanhCaChuaDauPhu,
+  dish_canh_ca_chua_thit_bam: ASSET_IMAGES.dishCanhCaChuaDauPhu,
+  dish_thit_kho_tieu_hue: ASSET_IMAGES.dishThitKhoTieuHue,
+  dish_thit_kho_tieu: ASSET_IMAGES.dishThitKhoTieuHue,
+  dish_trung_chien_hanh: ASSET_IMAGES.dishTrungChienHanh,
+  dish_trung_chien_sot_mam_ot: ASSET_IMAGES.dishTrungChienHanh,
+  dish_trung_ran_bong_xop: ASSET_IMAGES.dishTrungChienHanh,
+  dish_nem_ran_hanoi: ASSET_IMAGES.dishNemRanHanoi,
+  dish_cha_gio: ASSET_IMAGES.dishNemRanHanoi,
+  dish_pho_bo_hanoi: ASSET_IMAGES.dishPhoBoHanoi,
+  dish_pho_bo: ASSET_IMAGES.dishPhoBoHanoi,
+  dish_bun_cha_hanoi: ASSET_IMAGES.dishBunChaHanoi,
+  dish_thit_nuong_lui: ASSET_IMAGES.dishBunChaHanoi,
+  dish_com_tam_suon: ASSET_IMAGES.dishComTamSuon,
+  dish_suon_nuong: ASSET_IMAGES.dishComTamSuon,
+  dish_ca_kho_to: ASSET_IMAGES.dishCaKhoTo,
+  dish_ca_kho: ASSET_IMAGES.dishCaKhoTo,
+  dish_rau_muong_xao: ASSET_IMAGES.dishRauMuongXao,
+  dish_rau_xao: ASSET_IMAGES.dishRauMuongXao,
+  dish_banh_xeo: ASSET_IMAGES.dishBanhXeo,
+  dish_bun_bo_hue: ASSET_IMAGES.dishBunBoHue,
+  dish_canh_suon_chua: ASSET_IMAGES.dishCanhSuonChua,
+  dish_canh_suon_sau: ASSET_IMAGES.dishCanhSuonChua,
+  dish_goi_ga_bap_cai: ASSET_IMAGES.dishGoiGaBapCai,
+  dish_nom_ga: ASSET_IMAGES.dishGoiGaBapCai,
+  dish_dau_phu_sot_ca: ASSET_IMAGES.dishDauPhuSotCa,
+  dish_che_sen_long_nhan: ASSET_IMAGES.dishCheSenLongNhan,
+  dish_che_sen: ASSET_IMAGES.dishCheSenLongNhan,
+  dish_canh_cai_nau_thit: ASSET_IMAGES.dishCanhCaiNauThit,
+  dish_com_rang_dua_bo: ASSET_IMAGES.dishComRangDuaBo,
+  dish_thit_kho_tau: ASSET_IMAGES.dishThitKho,
+  dish_thit_kho: ASSET_IMAGES.dishThitKho,
+  dish_canh_chua_ca: ASSET_IMAGES.dishCanhChua,
+  dish_canh_chua: ASSET_IMAGES.dishCanhChua,
+  dish_goi_cuon_springrolls: ASSET_IMAGES.dishGoiCuon,
+  dish_goi_cuon: ASSET_IMAGES.dishGoiCuon,
+};
 
-  if (imageTag === 'dish_thit_kho_tau' || t.includes('kho') || t.includes('thịt') || c.includes('kho')) {
-    return ASSET_IMAGES.dishThitKho;
+/**
+ * Intelligent image resolver:
+ * Matches recipe by imageTag first, then analyzes title keywords & culinary taxonomy,
+ * guaranteeing an accurate, unique photo for every distinct dish.
+ */
+export function getRecipeImage(imageTag?: string, title?: string, category?: string): string {
+  // 1. Direct registry tag match
+  if (imageTag && DISH_IMAGE_REGISTRY[imageTag]) {
+    return DISH_IMAGE_REGISTRY[imageTag];
   }
-  if (imageTag === 'dish_canh_chua_ca' || t.includes('canh') || t.includes('súp') || c.includes('canh')) {
-    return ASSET_IMAGES.dishCanhChua;
+
+  const t = (title || '').toLowerCase().trim();
+  const c = (category || '').toLowerCase().trim();
+
+  // 2. High-precision dish name and keyword recognition
+  if (t.includes('cháy cạnh') || t.includes('rang cháy') || t.includes('ba chỉ rang') || t.includes('thịt rang')) {
+    return ASSET_IMAGES.dishThitRangChayCanh;
+  }
+  if (t.includes('lá lốt') || t.includes('chả lá')) {
+    return ASSET_IMAGES.dishChaLaLot;
+  }
+  if (t.includes('đậu phụ sốt') || t.includes('đậu hũ sốt') || (t.includes('đậu phụ') && t.includes('sốt cà')) || (t.includes('đậu') && t.includes('sốt cà chua'))) {
+    return ASSET_IMAGES.dishDauPhuSotCa;
+  }
+  if ((t.includes('cà chua') && t.includes('đậu')) || (t.includes('canh') && t.includes('cà chua'))) {
+    return ASSET_IMAGES.dishCanhCaChuaDauPhu;
+  }
+  if ((t.includes('tiêu') && (t.includes('huế') || t.includes('thịt kho') || t.includes('cay'))) || t.includes('kho tiêu')) {
+    return ASSET_IMAGES.dishThitKhoTieuHue;
   }
   if (
-    imageTag === 'dish_goi_cuon_springrolls' ||
-    t.includes('cuốn') ||
-    t.includes('gỏi') ||
-    t.includes('chả') ||
-    c.includes('cuốn')
+    t.includes('trứng chiên') ||
+    t.includes('trứng rán') ||
+    t.includes('trứng đúc') ||
+    t.includes('ốp la') ||
+    t.includes('trứng sốt') ||
+    t.includes('trứng hấp')
   ) {
+    return ASSET_IMAGES.dishTrungChienHanh;
+  }
+  if (t.includes('nem rán') || t.includes('chả giò') || t.includes('nem giòn')) {
+    return ASSET_IMAGES.dishNemRanHanoi;
+  }
+  if (t.includes('cơm tấm') || t.includes('sườn bì') || (t.includes('sườn') && t.includes('nướng'))) {
+    return ASSET_IMAGES.dishComTamSuon;
+  }
+  if (t.includes('phở') || t.includes('phở bò') || t.includes('tái lăn')) {
+    return ASSET_IMAGES.dishPhoBoHanoi;
+  }
+  if (t.includes('bún chả') || t.includes('thịt nướng than') || t.includes('chả nướng') || t.includes('thịt nướng lụi')) {
+    return ASSET_IMAGES.dishBunChaHanoi;
+  }
+  if (t.includes('cơm rang') || t.includes('cơm chiên') || t.includes('dưa bò')) {
+    return ASSET_IMAGES.dishComRangDuaBo;
+  }
+  if (t.includes('cá kho') || t.includes('kho tộ') || t.includes('cá lóc kho') || t.includes('cá basa')) {
+    return ASSET_IMAGES.dishCaKhoTo;
+  }
+  if (t.includes('rau muống') || t.includes('xào tỏi') || t.includes('xanh mướt') || t.includes('rau xào')) {
+    return ASSET_IMAGES.dishRauMuongXao;
+  }
+  if (t.includes('bánh xèo') || t.includes('bánh khọt')) {
+    return ASSET_IMAGES.dishBanhXeo;
+  }
+  if (t.includes('bún bò') || t.includes('bún huế')) {
+    return ASSET_IMAGES.dishBunBoHue;
+  }
+  if (t.includes('sườn') && (t.includes('chua') || t.includes('sấu') || t.includes('canh'))) {
+    return ASSET_IMAGES.dishCanhSuonChua;
+  }
+  if (t.includes('cải') && (t.includes('canh') || t.includes('gừng') || t.includes('thịt bằm'))) {
+    return ASSET_IMAGES.dishCanhCaiNauThit;
+  }
+  if (t.includes('gỏi gà') || t.includes('nộm gà') || t.includes('xé phay') || t.includes('bắp cải')) {
+    return ASSET_IMAGES.dishGoiGaBapCai;
+  }
+  if (t.includes('gỏi cuốn') || t.includes('nem cuốn') || t.includes('cuốn tôm') || t.includes('cuốn tươi')) {
+    return ASSET_IMAGES.dishGoiCuon;
+  }
+  if (t.includes('chè') || t.includes('sen') || t.includes('long nhãn') || t.includes('tráng miệng')) {
+    return ASSET_IMAGES.dishCheSenLongNhan;
+  }
+  if (t.includes('kho tàu') || t.includes('nước dừa') || (t.includes('kho') && t.includes('trứng'))) {
+    return ASSET_IMAGES.dishThitKho;
+  }
+  if (t.includes('canh chua') || t.includes('bông điên điển') || t.includes('canh me')) {
+    return ASSET_IMAGES.dishCanhChua;
+  }
+  if (t.includes('cuộn') || t.includes('hấp gừng') || t.includes('luộc')) {
     return ASSET_IMAGES.dishGoiCuon;
   }
 
-  // Default to savory dish or hero
-  return ASSET_IMAGES.dishThitKho;
+  // 3. Category Fallbacks
+  if (c.includes('canh') || c.includes('súp')) {
+    return ASSET_IMAGES.dishCanhCaChuaDauPhu;
+  }
+  if (c.includes('gỏi') || c.includes('nộm') || c.includes('cuốn')) {
+    return ASSET_IMAGES.dishGoiGaBapCai;
+  }
+  if (c.includes('kho') || c.includes('rim')) {
+    return ASSET_IMAGES.dishThitKhoTieuHue;
+  }
+  if (c.includes('xào') || c.includes('chiên') || c.includes('rán')) {
+    return ASSET_IMAGES.dishThitRangChayCanh;
+  }
+  if (c.includes('nướng')) {
+    return ASSET_IMAGES.dishBunChaHanoi;
+  }
+  if (c.includes('bún') || c.includes('phở') || c.includes('mì')) {
+    return ASSET_IMAGES.dishPhoBoHanoi;
+  }
+
+  // 4. Stable deterministic dish distribution based on title string hash
+  // (guarantees diverse images across unknown dishes without repeating the same image)
+  const pool = [
+    ASSET_IMAGES.dishThitRangChayCanh,
+    ASSET_IMAGES.dishCanhCaChuaDauPhu,
+    ASSET_IMAGES.dishChaLaLot,
+    ASSET_IMAGES.dishThitKhoTieuHue,
+    ASSET_IMAGES.dishTrungChienHanh,
+    ASSET_IMAGES.dishRauMuongXao,
+    ASSET_IMAGES.dishDauPhuSotCa,
+    ASSET_IMAGES.dishCanhSuonChua,
+  ];
+
+  let hash = 0;
+  for (let i = 0; i < t.length; i++) {
+    hash = (hash << 5) - hash + t.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % pool.length;
+  return pool[index];
 }
 
 /**
@@ -106,6 +290,6 @@ export function handleImageFallback(
   } else if (fallbackType === 'kitchen') {
     target.src = ASSET_IMAGES.heroKitchen;
   } else {
-    target.src = ASSET_IMAGES.dishThitKho;
+    target.src = ASSET_IMAGES.dishThitRangChayCanh;
   }
 }

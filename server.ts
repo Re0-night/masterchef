@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from '@google/genai';
+import { generateTailoredVietnameseRecipes } from './src/server/recipeEngine.ts';
 
 dotenv.config();
 
@@ -233,7 +234,11 @@ Nhiệm vụ của bạn:
 });
 
 // Dynamic recipe generator helper tailored to exact filter combinations
-function getDynamicFallbackRecipes(ingredients: any[], preferences: any = {}) {
+function getDynamicFallbackRecipes(ingredients: any[], preferences: any = {}, previousRecipeTitles: string[] = []) {
+  return generateTailoredVietnameseRecipes(ingredients, preferences, previousRecipeTitles);
+}
+
+function _legacyFallback(ingredients: any[], preferences: any = {}) {
   const { mealType = 'family', cookingTime = 'all', region = 'all' } = preferences;
 
   const ingList = ingredients.map((i) => (typeof i === 'string' ? i : i.name || '')).filter(Boolean);
@@ -875,13 +880,36 @@ function getDynamicFallbackRecipes(ingredients: any[], preferences: any = {}) {
  */
 app.post('/api/generate-recipes', async (req: Request, res: Response) => {
   try {
-    const { ingredients = [], preferences = {} } = req.body;
+    const { ingredients = [], preferences = {}, previousRecipeTitles = [] } = req.body;
 
     if (!Array.isArray(ingredients) || ingredients.length === 0) {
       return res.status(400).json({ error: 'Danh sách nguyên liệu không được để trống' });
     }
 
     const { mealType = 'family', cookingTime = 'all', region = 'all', difficulty = 'all' } = preferences;
+
+    // Detect if ingredients are insufficient (Requirement 8)
+    const rawNames = ingredients.map((i) => (typeof i === 'string' ? i : i.name || '')).filter(Boolean);
+    const hasProtein = rawNames.some((n) =>
+      /thịt|ba chỉ|ba rọi|sườn|heo|lợn|bò|gà|vịt|cá|tôm|mực|hải sản|nghêu|sò|cua|trứng|đậu phụ|đậu hũ/i.test(n)
+    );
+    const hasVegetable = rawNames.some((n) =>
+      /rau|cà chua|cải|dưa|bầu|bí|khổ qua|mướp|nấm|giá|bắp cải|đậu que|đậu cô ve/i.test(n)
+    );
+
+    let ingredientAdvisory: any = null;
+    if (rawNames.length < 2 || (!hasProtein && !hasVegetable)) {
+      ingredientAdvisory = {
+        isInsufficient: true,
+        message:
+          'Bạn đang có khá ít nguyên liệu chính trong bếp. SmartChef AI đã sáng tạo các món ngon tận dụng tối đa nguyên liệu hiện có và gợi ý thêm nguyên liệu cần thiết bên dưới để bữa cơm trọn vị nhất nhé!',
+        suggestedAdditions: [
+          'Thịt ba chỉ heo (300g) hoặc ức gà tươi',
+          'Trứng gà ta (3–4 quả) hoặc 1 bìa đậu phụ',
+          'Rau xanh luộc / xào tỏi hoặc cà chua tươi',
+        ],
+      };
+    }
 
     const regionInstruction =
       region === 'north'
@@ -924,17 +952,42 @@ YÊU CẦU:
 3. Đưa ra 3 gợi ý tinh gọn, mô tả ngắn gọn, dễ nấu.
 4. Từng bước nấu (steps) chi tiết, hướng dẫn nhiệt độ lửa và thời gian chính xác khi người dùng mở công thức.
 5. Cung cấp bí quyết đầu bếp (chefSecret) đặc sắc.
-6. Phân bổ imageTag phù hợp:
-   - Nếu món kho / rim thịt/cá: dùng "dish_thit_kho_tau"
-   - Nếu món canh chua / thanh nhiệt: dùng "dish_canh_chua_ca"
-   - Nếu món cuốn / gỏi / khai vị tươi: dùng "dish_goi_cuon_springrolls"
-   - Khác: dùng "dish_general"
+6. Phân bổ imageTag chính xác tương ứng với món ăn:
+   - "dish_thit_rang_chay_canh" (Thịt ba chỉ rang cháy cạnh hành hoa, thịt rang xém)
+   - "dish_cha_la_lot" (Chả thịt băm cuốn lá lốt áp chảo rán giòn)
+   - "dish_canh_ca_chua_dau_phu" (Canh cà chua đậu phụ thịt bằm)
+   - "dish_thit_kho_tieu_hue" (Thịt kho tiêu xứ Huế, thịt kho cay đậm đà)
+   - "dish_trung_chien_hanh" (Trứng chiên hành hoa, trứng rán, trứng sốt mắm tỏi)
+   - "dish_nem_ran_hanoi" (Nem rán Hà Nội, chả giò giòn rụm)
+   - "dish_pho_bo_hanoi" (Phở bò Hà Nội, phở bò tái lăn)
+   - "dish_bun_cha_hanoi" (Bún chả Hà Nội, thịt xiên nướng than hoa)
+   - "dish_com_tam_suon" (Cơm tấm sườn bì chả nướng mỡ hành)
+   - "dish_ca_kho_to" (Cá lóc kho tộ nước màu dừa tiêu ớt)
+   - "dish_rau_muong_xao" (Rau muống xào tỏi xanh mướt)
+   - "dish_banh_xeo" (Bánh xèo miền Tây tôm thịt giòn rụm)
+   - "dish_bun_bo_hue" (Bún bò Huế giò heo chả cua sả ớt)
+   - "dish_canh_suon_chua" (Canh sườn non nấu sấu / me chua thanh)
+   - "dish_goi_ga_bap_cai" (Gỏi gà xé phay bắp cải chua ngọt)
+   - "dish_dau_phu_sot_ca" (Đậu phụ chiên sốt cà chua hành hoa)
+   - "dish_che_sen_long_nhan" (Chè hạt sen long nhãn tráng miệng)
+   - "dish_canh_cai_nau_thit" (Canh cải bẹ xanh nấu gừng thịt bằm)
+   - "dish_com_rang_dua_bo" (Cơm rang dưa bò giòn hạt)
+   - "dish_thit_kho_tau" (Thịt ba rọi kho tàu nước dừa trứng cút)
+   - "dish_canh_chua_ca" (Canh chua cá lóc / canh chua tôm Nam Bộ)
+   - "dish_goi_cuon_springrolls" (Gỏi cuốn tôm thịt, nem cuốn tươi)
 `;
+
+    const hasApiKey = Boolean(
+      process.env.GEMINI_API_KEY &&
+        process.env.GEMINI_API_KEY.trim() !== '' &&
+        process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY'
+    );
 
     let parsedData: any = null;
 
-    try {
-      const response: any = await withTimeout(
+    if (hasApiKey) {
+      try {
+        const response: any = await withTimeout(
         ai.models.generateContent({
           model: 'gemini-3.8-flash',
           contents: promptText,
@@ -957,7 +1010,8 @@ YÊU CẦU:
                       category: { type: Type.STRING, description: 'Món kho / Món canh / Món xào / Món cuốn / Món chiên' },
                       imageTag: {
                         type: Type.STRING,
-                        description: 'dish_thit_kho_tau | dish_canh_chua_ca | dish_goi_cuon_springrolls | dish_general',
+                        description:
+                          'Thẻ ảnh: dish_thit_rang_chay_canh | dish_cha_la_lot | dish_canh_ca_chua_dau_phu | dish_thit_kho_tieu_hue | dish_trung_chien_hanh | dish_nem_ran_hanoi | dish_pho_bo_hanoi | dish_bun_cha_hanoi | dish_com_tam_suon | dish_ca_kho_to | dish_rau_muong_xao | dish_banh_xeo | dish_bun_bo_hue | dish_canh_suon_chua | dish_goi_ga_bap_cai | dish_dau_phu_sot_ca | dish_che_sen_long_nhan | dish_canh_cai_nau_thit | dish_com_rang_dua_bo | dish_thit_kho_tau | dish_canh_chua_ca | dish_goi_cuon_springrolls',
                       },
                       shortDescription: { type: Type.STRING, description: 'Mô tả ngắn gọn, kích thích vị giác' },
                       cookingTimeMinutes: { type: Type.INTEGER, description: 'Thời gian nấu tính bằng phút' },
@@ -1032,7 +1086,7 @@ YÊU CẦU:
             },
           },
         }),
-        7000
+        15000
       );
 
       const responseText = response.text || '{"recipes":[]}';
@@ -1043,9 +1097,9 @@ YÊU CẦU:
         parsedData.recipes = parsedData.recipes.map((r: any) => {
           let cTime = Number(r.cookingTimeMinutes) || 20;
           if (cookingTime === 'under_30' || mealType === 'quick') {
-            cTime = Math.min(cTime, 25);
+            cTime = Math.min(cTime, 20);
           } else if (cookingTime === 'under_45') {
-            cTime = Math.min(cTime, 40);
+            cTime = Math.min(cTime, 38);
           }
           return {
             ...r,
@@ -1053,14 +1107,22 @@ YÊU CẦU:
           };
         });
       } else {
-        parsedData = getDynamicFallbackRecipes(ingredients, preferences);
+        parsedData = getDynamicFallbackRecipes(ingredients, preferences, previousRecipeTitles);
       }
     } catch (genErr) {
-      console.warn('Gemini recipe generation API error, using dynamic culinary fallback tailored to filters:', genErr);
-      parsedData = getDynamicFallbackRecipes(ingredients, preferences);
+      console.warn('Gemini recipe generation API error, using dynamic culinary engine tailored to filters:', genErr);
+      parsedData = getDynamicFallbackRecipes(ingredients, preferences, previousRecipeTitles);
     }
+  } else {
+    // Fast dynamic Vietnamese culinary synthesis
+    parsedData = getDynamicFallbackRecipes(ingredients, preferences, previousRecipeTitles);
+  }
 
-    return res.json(parsedData);
+  if (ingredientAdvisory) {
+    parsedData.ingredientAdvisory = ingredientAdvisory;
+  }
+
+  return res.json(parsedData);
   } catch (error: any) {
     console.error('Error in /api/generate-recipes:', error);
     const status = error?.status || 500;

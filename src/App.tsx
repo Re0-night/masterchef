@@ -9,7 +9,7 @@ import { RecipeDetailModal } from './components/RecipeDetailModal';
 import { CookingTipsSection } from './components/CookingTipsSection';
 import { Footer } from './components/Footer';
 import { INITIAL_INGREDIENTS, INITIAL_RECIPES } from './data/initialData';
-import { Ingredient, Recipe, CookingPreferences, IngredientCategory } from './types';
+import { Ingredient, Recipe, CookingPreferences, IngredientCategory, IngredientAdvisory } from './types';
 import { Sparkles, ChefHat, AlertCircle, RefreshCw, Clock, MapPin, Utensils } from 'lucide-react';
 
 function getMealTypeLabel(mealType: string) {
@@ -59,6 +59,7 @@ export default function App() {
   );
   const [recipes, setRecipes] = useState<Recipe[]>(INITIAL_RECIPES);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [ingredientAdvisory, setIngredientAdvisory] = useState<IngredientAdvisory | null>(null);
 
   // Loading States
   const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
@@ -167,6 +168,7 @@ export default function App() {
         body: JSON.stringify({
           ingredients: ingredients.map((i) => i.name),
           preferences: activePrefs,
+          previousRecipeTitles: recipes.map((r) => r.title),
         }),
       });
 
@@ -184,10 +186,15 @@ export default function App() {
 
       if (data.recipes && Array.isArray(data.recipes) && data.recipes.length > 0) {
         setRecipes(data.recipes);
+        if (data.ingredientAdvisory) {
+          setIngredientAdvisory(data.ingredientAdvisory);
+        } else {
+          setIngredientAdvisory(null);
+        }
         if (shouldScroll) {
           setTimeout(() => {
             scrollToSection('recipes-section');
-          }, 300);
+          }, 250);
         }
       } else {
         throw new Error('Chưa tạo được công thức phù hợp, vui lòng thử lại.');
@@ -209,7 +216,6 @@ export default function App() {
    */
   const handlePreferencesChange = (newPrefs: CookingPreferences) => {
     setPreferences(newPrefs);
-    handleGenerateRecipes(newPrefs, false);
   };
 
   // Ingredient list manipulations
@@ -321,7 +327,7 @@ export default function App() {
             <PreferencesFilter
               preferences={preferences}
               onChangePreferences={handlePreferencesChange}
-              onGenerateRecipes={() => handleGenerateRecipes(undefined, true)}
+              onGenerateRecipes={(prefs) => handleGenerateRecipes(prefs, true)}
               isGenerating={isGeneratingRecipes}
               ingredientCount={ingredients.length}
             />
@@ -371,7 +377,7 @@ export default function App() {
 
               {recipes.length > 0 && (
                 <button
-                  onClick={() => handleGenerateRecipes(undefined, false)}
+                  onClick={() => handleGenerateRecipes(preferences, false)}
                   disabled={isGeneratingRecipes}
                   className="px-4 py-2.5 bg-[#FAF7F2] hover:bg-[#EFE8DA] text-stone-700 font-semibold text-xs rounded-xl border border-[#D9CFC1] transition-all flex items-center gap-2 self-start md:self-auto cursor-pointer"
                 >
@@ -381,31 +387,82 @@ export default function App() {
               )}
             </div>
 
+            {/* Advisory Banner if ingredients are limited (Requirement 8) */}
+            {ingredientAdvisory && ingredientAdvisory.isInsufficient && (
+              <div className="mb-8 p-5 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-950 shadow-xs">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 text-amber-800">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-sm text-amber-950">
+                      Gợi ý bổ sung nguyên liệu từ Bếp Trưởng SmartChef AI
+                    </h4>
+                    <p className="text-xs sm:text-sm text-amber-800 mt-1 leading-relaxed">
+                      {ingredientAdvisory.message}
+                    </p>
+                    {ingredientAdvisory.suggestedAdditions?.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2 items-center">
+                        <span className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+                          Đề xuất thêm:
+                        </span>
+                        {ingredientAdvisory.suggestedAdditions.map((item, idx) => (
+                          <span
+                            key={idx}
+                            className="px-3 py-1 rounded-lg bg-white border border-amber-300 text-amber-900 text-xs font-semibold shadow-2xs"
+                          >
+                            + {item}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Loading Indicator Banner while Generating */}
             {isGeneratingRecipes && (
               <div className="mb-8 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-[#0C3426] flex items-center justify-between shadow-xs animate-pulse">
                 <div className="flex items-center gap-3">
                   <RefreshCw className="w-4 h-4 text-emerald-700 animate-spin shrink-0" />
                   <p className="text-xs sm:text-sm font-semibold">
-                    Đang đồng bộ công thức mới: <span className="text-emerald-800 font-bold">{getMealTypeLabel(preferences.mealType)}</span> · <span className="text-emerald-800 font-bold">{getCookingTimeLabel(preferences.cookingTime)}</span> · <span className="text-emerald-800 font-bold">{getRegionLabel(preferences.region)}</span>
+                    Đang đồng bộ thực đơn: <span className="text-emerald-800 font-bold">{getMealTypeLabel(preferences.mealType)}</span> · <span className="text-emerald-800 font-bold">{getCookingTimeLabel(preferences.cookingTime)}</span> · <span className="text-emerald-800 font-bold">{getRegionLabel(preferences.region)}</span>
                   </p>
                 </div>
-                <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-700 font-bold hidden sm:inline">SmartChef AI Sync</span>
+                <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-700 font-bold hidden sm:inline">SmartChef AI Active</span>
               </div>
             )}
 
-            {/* Recipes Grid */}
-            {recipes.length === 0 ? (
+            {/* Loading Skeleton Cards when Generating */}
+            {isGeneratingRecipes ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[1, 2, 3].map((n) => (
+                  <div
+                    key={n}
+                    className="bg-white rounded-3xl border border-[#E8DFD0] overflow-hidden p-6 animate-pulse shadow-xs"
+                  >
+                    <div className="aspect-4/3 w-full bg-stone-100 rounded-2xl mb-5 flex items-center justify-center">
+                      <ChefHat className="w-8 h-8 text-stone-400 animate-bounce" />
+                    </div>
+                    <div className="h-4 bg-stone-200 rounded w-1/3 mb-3" />
+                    <div className="h-6 bg-stone-200 rounded w-3/4 mb-3" />
+                    <div className="h-4 bg-stone-200 rounded w-full mb-2" />
+                    <div className="h-4 bg-stone-200 rounded w-2/3" />
+                  </div>
+                ))}
+              </div>
+            ) : recipes.length === 0 ? (
               <div className="text-center py-16 border-2 border-dashed border-[#E8DFD0] rounded-3xl p-8">
                 <ChefHat className="w-12 h-12 text-stone-400 mx-auto mb-3" />
                 <h3 className="font-serif text-lg font-bold text-stone-800 mb-1">
                   Chưa có công thức nào được tạo
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-500 max-w-md mx-auto mb-6">
-                  Hãy nhấn nút "Gợi ý 3–5 món ngon" ở trên để SmartChef AI sáng tạo các công thức chuẩn vị từ nguyên liệu của bạn.
+                  Hãy nhấn nút "Gợi ý món ăn" ở trên để SmartChef AI sáng tạo các công thức chuẩn vị từ nguyên liệu của bạn.
                 </p>
                 <button
-                  onClick={() => handleGenerateRecipes(undefined, true)}
+                  onClick={() => handleGenerateRecipes(preferences, true)}
                   disabled={isGeneratingRecipes || ingredients.length === 0}
                   className="px-6 py-3 bg-[#0C3426] hover:bg-[#134634] text-white font-semibold text-xs rounded-xl transition-all shadow-sm cursor-pointer"
                 >
@@ -413,7 +470,7 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 transition-opacity duration-300 ${isGeneratingRecipes ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {recipes.map((recipe) => (
                   <RecipeCard
                     key={recipe.id}
